@@ -1,4 +1,4 @@
-# zazulago
+# ZazuLago-VM
 
 ### Prereqs
 
