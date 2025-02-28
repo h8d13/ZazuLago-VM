@@ -95,9 +95,6 @@ If you were to encrypt something and delete this file make sure to remember your
         # Example #I for in #O for out : KEY AT THE TOP #####
         """
         3902745918
-        #I2025-02-27 18:05:59
-        #2d27ddbb-16f5-4f30-9647-d4ab62833c4e
-        #hadeon
         #O2025-02-27 18:07:16
         #2d27ddbb-16f5-4f30-9647-d4ab62833c4e
         #hadeon
