@@ -100,4 +100,6 @@ If you were to encrypt something and delete this file make sure to remember your
         #hadeon
         """
 
+Started off as a project where I wanted to see how it's possible to secure VMs through configuration. 
 
+I will be posting more settings to do soon. 
