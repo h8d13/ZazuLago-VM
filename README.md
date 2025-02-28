@@ -103,3 +103,7 @@ If you were to encrypt something and delete this file make sure to remember your
 Started off as a project where I wanted to see how it's possible to secure VMs through configuration. 
 
 I will be posting more settings to do soon. 
+
+## Demo
+
+https://github.com/user-attachments/assets/dfe4d7fa-962c-4f8a-a551-0506bdbe4219
