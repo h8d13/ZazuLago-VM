@@ -74,7 +74,8 @@ Program then boots you off C drive automatically.
 
 It will open again! We want to be on the disk instead of ISO after initial-install. This let's you do post-install basics. 
 
-Finally, now you can use these options or just any input to skip and run the normal encryption/decryption mechanisms. Program detects automatically if it's encrypted or not using the .bin format. 
+Finally, now you can use these options or just any input to skip and run the normal encryption/decryption mechanisms. 
+Program detects automatically if it's encrypted or not using the `.bin` format.
 
 ----
 
