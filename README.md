@@ -59,7 +59,11 @@ cores = 12
 ## Get it running:
 
 Create a d folder for your isos. 
+
 Create a c folder for your disk. 
+
+Point to the right names in the config section of vm.py script. (Use relative: `image_name = "./c/myvm.qcow2"
+iso_name = "./d/deb.iso"`
 
 Launch the script and type: `rdisk`. This creates a 60GB disk and exits. 
 Launch the script again and `brick` this boots the ISO, when done with install you can close the Qemu window. 
