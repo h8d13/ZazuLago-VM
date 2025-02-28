@@ -49,6 +49,21 @@ Finished! Processed 11225.75 MB in 18.66 seconds (601.74 MB/s)
 ``` 
 
 ----
+4. Backtacing
+Works off any number between 0 and 4294967295. And logs on the same file. 
+If you were to encrypt something and delete this file make sure to remember your magic number. 
+
+        # Example #I for in #O for out : KEY AT THE TOP #####
+        """
+        3902745918
+        #O2025-02-27 18:07:16
+        #2d27ddbb-16f5-4f30-9647-d4ab62833c4e
+        #hadeon
+        """
+
+Started off as a project where I wanted to see how it's possible to secure VMs through configuration. 
+I will be posting more settings to do soon. 
+Like tailing network, etc 
 
 Uses simple shell scripting to be configurable (thanks to Qemu commands):
 ``` 
@@ -89,21 +104,6 @@ hedgen2c usage:
 ```
 ./hedgen2c e hello.png helogoencrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogodecrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogocorruptedonpurpose.png 6969
 ``` 
-
-Works off any number between 0 and 4294967295. And logs on the same file. 
-If you were to encrypt something and delete this file make sure to remember your magic number. 
-
-        # Example #I for in #O for out : KEY AT THE TOP #####
-        """
-        3902745918
-        #O2025-02-27 18:07:16
-        #2d27ddbb-16f5-4f30-9647-d4ab62833c4e
-        #hadeon
-        """
-
-Started off as a project where I wanted to see how it's possible to secure VMs through configuration. 
-I will be posting more settings to do soon. 
-Like tailing network, etc 
 
 ## Demo
 
