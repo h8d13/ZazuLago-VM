@@ -76,10 +76,11 @@ cores = 12
 
 ## Get it running:
 
-Create a `d` folder for your ISOs(`antiX-23.2_x64-full.iso `)
+Create a `d` folder for your ISOs(`antiX-23.2_x64-full.iso `).
+
 And a `c` folder for your disk (`myvm.qcow2,...`). 
 
-Point to the right names in the config section of `vm.py` script. (Use relative: `image_name = "./c/myvm.qcow2"
+Point to the right names in the config section of `vm.py` script. (Use relative paths: `image_name = "./c/myvm.qcow2"
 iso_name = "./d/deb.iso"`
 
 Launch the script and type: `rdisk`. This creates a 60GB disk and exits (it will not take 60gb, only a provision number.)
