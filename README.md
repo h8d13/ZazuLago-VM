@@ -92,7 +92,7 @@ hedgen2c usage:
 Works off any number between 0 and 4294967295. And logs on the same file. 
 If you were to encrypt something and delete this file make sure to remember your magic number. 
 
-        # Example #I for in #O for out
+        # Example #I for in #O for out : KEY AT THE TOP #####
         """
         3902745918
         #I2025-02-27 18:05:59
