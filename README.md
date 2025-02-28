@@ -50,7 +50,7 @@ Finished! Processed 11225.75 MB in 18.66 seconds (601.74 MB/s)
 
 ----
 
-Uses simple shell scripting to be configurable:
+Uses simple shell scripting to be configurable (thanks to Qemu commands):
 ``` 
 image_name = "./c/myvm.qcow2"
 iso_name = "./d/deb.iso"
