@@ -10,6 +10,9 @@ Run elevated as the nature of the script.
 
 1. Bit level manipulation to encrypt at rest based on a local secret
 
+(15 Instructions; 5 XOR, 10 Custom instructions liek reverse, shift rotate; also bitmasking, jumping and a random sequence generqted at encryption qnd decryption) 
+With the only way to reverse is using the same magic number (local key file). 
+
 ```
 Elevated: True
 Already executable
@@ -38,7 +41,7 @@ Finished! Processed 11225.75 MB in 18.66 seconds (601.74 MB/s)
 
 (" r  : Refresh the key and logs (usually for new machines)")
 (" d  : Delete the key totally. (Write it down, if you wish to re-use)")
-(" brick  : Boot off the iso but keeping same disk.")
+(" brick  : Boot off the iso but keeping same disk, then restart on C.")
 (" rdisk  : Resets the disk totally.")
 (" exit  : Without encrypting back.")
 
