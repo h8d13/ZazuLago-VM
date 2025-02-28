@@ -63,12 +63,15 @@ cores = 12
 
 Create a `d` folder for your isos and a `c` folder for your disk. 
 
-Point to the right names in the config section of vm.py script. (Use relative: `image_name = "./c/myvm.qcow2"
+Point to the right names in the config section of `vm.py` script. (Use relative: `image_name = "./c/myvm.qcow2"
 iso_name = "./d/deb.iso"`
 
 Launch the script and type: `rdisk`. This creates a 60GB disk and exits (it will not take 60gb, only a provision number)
 
-Launch the script again and `brick` this boots the ISO, when done with install you can close the Qemu window. Program then boots you off C drive automatically. 
+Launch the script again and `brick` this boots the ISO, when done with install you can close the Qemu window. 
+
+Program then boots you off C drive automatically. 
+
 It will open again! We want to be on the disk instead of ISO after initial-install. This let's you do post-install basics. 
 
 Finally, now you can use these options or just any input to skip and run the normal encryption/decryption mechanisms. Program detects automatically if it's encrypted or not using the .bin format. 
