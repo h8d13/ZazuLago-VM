@@ -10,7 +10,7 @@ Run elevated as the nature of the script.
 
 1. Bit level manipulation to encrypt at rest based on a local secret
 
-(15 Instructions; 5 XOR, 10 Custom instructions liek reverse, shift rotate; also bitmasking, jumping and a random sequence generqted at encryption qnd decryption) 
+(15 Instructions; 5 XOR, 10 Custom instructions like reverse, shift, rotate; also bitmasking, jumping and a random sequence generated at encryption qnd decryption) 
 With the only way to reverse is using the same magic number (local key file). 
 
 ```
