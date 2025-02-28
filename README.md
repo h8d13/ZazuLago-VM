@@ -74,7 +74,8 @@ hedgen2c usage:
 ./hedgen2c e hello.png helogoencrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogodecrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogocorruptedonpurpose.png 6969
 ``` 
 
-Works off any number between 0 and 4294967295.
+Works off any number between 0 and 4294967295. And logs on the same file. 
+IF you were to encrypt something and delete this file make sure to remember your magic number. 
 
         # Example #I for in #O for out
         """
