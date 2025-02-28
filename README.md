@@ -34,12 +34,15 @@ Finished! Processed 11225.75 MB in 18.66 seconds (601.74 MB/s)
 
 3. Custom thoughtful features
 ``` 
-print("WARNING Options are shown bcs you are <at rest> but can be dangerous!")
-print(" r  : Refresh the key and logs (usually for new machines)")
-print(" d  : Delete the key totally. (Write it down, if you wish to re-use)")
-print(" brick  : Boot off the iso but keeping same disk.")
-print(" rdisk  : Resets the disk totally.")
-print(" exit  : Without encrypting back.")
+("WARNING Options are shown bcs you are <at rest> but can be dangerous!")
+
+(" r  : Refresh the key and logs (usually for new machines)")
+(" d  : Delete the key totally. (Write it down, if you wish to re-use)")
+(" brick  : Boot off the iso but keeping same disk.")
+(" rdisk  : Resets the disk totally.")
+(" exit  : Without encrypting back.")
+
+("Any key to skip (boot normally) or choice: ")
 ``` 
 
 ----
