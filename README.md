@@ -103,11 +103,14 @@ Program detects automatically if it's encrypted or not using the `.bin` format.
 
 ## How does it encrypt?
 
-hedgen2c usage:
+./lib/hedgen2c usage:
+
+```
 - e/d flag
 - source
 - destination
 - magic n°
+```
 
 ```
 ./hedgen2c e hello.png helogoencrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogodecrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogocorruptedonpurpose.png 6969
