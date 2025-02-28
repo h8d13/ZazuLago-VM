@@ -89,7 +89,9 @@ image_name = "./c/myvm.qcow2"
 iso_name = "./d/deb.iso"
 ```
 
-Launch the script and type: `rdisk`. This creates a 60GB disk and exits (it will not take 60gb, only a provision number.)
+Launch the script and type: `rdisk`. 
+
+This creates a 60GB disk and exits (it will not take 60gb, only a provision number.)
 
 Launch the script again and `brick` this boots the ISO, when done with install you can close the Qemu window. 
 Program then boots you off C drive automatically. 
