@@ -57,13 +57,10 @@ cores = 12
 Create a d folder for your isos. 
 Create a c folder for your disk. 
 
-Launch the script and type: `rdisk` 
-
-This creates a 60GB disk and exits. 
-
+Launch the script and type: `rdisk`. This creates a 60GB disk and exits. 
 Launch the script again and `brick` this boots the ISO, when done with install you can close the Qemu window. 
 
-It will open again! Normal because we want to be on the disk instead of ISO after initial-install. This let's you do post-install basics. 
+It will open again! We want to be on the disk instead of ISO after initial-install. This let's you do post-install basics. 
 
 Finally, now you can use these options or just any input to skip and run the normal encryption/decryption mechanisms.
 
@@ -71,8 +68,23 @@ Finally, now you can use these options or just any input to skip and run the nor
 
 ## How does it encrypt?
 
-hedgen2c usage
+hedgen2c usage:
 
+```
+./hedgen2c e hello.png helogoencrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogodecrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogocorruptedonpurpose.png 6969
+``` 
 
+Works off any number between 0 and 4294967295.
+
+        # Example #I for in #O for out
+        """
+        3902745918
+        #I2025-02-27 18:05:59
+        #2d27ddbb-16f5-4f30-9647-d4ab62833c4e
+        #hadeon
+        #O2025-02-27 18:07:16
+        #2d27ddbb-16f5-4f30-9647-d4ab62833c4e
+        #hadeon
+        """
 
 
