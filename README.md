@@ -32,14 +32,15 @@ Progress: [====================] 100.0% (601.74 MB/s)
 Finished! Processed 11225.75 MB in 18.66 seconds (601.74 MB/s)
  ```
 
-3. Custom features
-
-        print("WARNING Options are shown bcs you are <at rest> but can be dangerous!")
-        print(" r  : Refresh the key and logs (usually for new machines)")
-        print(" d  : Delete the key totally. (Write it down, if you wish to re-use)")
-        print(" brick  : Boot off the iso but keeping same disk.")
-        print(" rdisk  : Resets the disk totally.")
-        print(" exit  : Without encrypting back.")
+3. Custom thoughtful features
+``` 
+print("WARNING Options are shown bcs you are <at rest> but can be dangerous!")
+print(" r  : Refresh the key and logs (usually for new machines)")
+print(" d  : Delete the key totally. (Write it down, if you wish to re-use)")
+print(" brick  : Boot off the iso but keeping same disk.")
+print(" rdisk  : Resets the disk totally.")
+print(" exit  : Without encrypting back.")
+``` 
 
 ----
 
@@ -62,20 +63,24 @@ Launch the script again and `brick` this boots the ISO, when done with install y
 
 It will open again! We want to be on the disk instead of ISO after initial-install. This let's you do post-install basics. 
 
-Finally, now you can use these options or just any input to skip and run the normal encryption/decryption mechanisms.
+Finally, now you can use these options or just any input to skip and run the normal encryption/decryption mechanisms. Program detects automatically if it's encrypted or not using the .bin format. 
 
 ----
 
 ## How does it encrypt?
 
 hedgen2c usage:
+- e/d flag
+- source
+- destination
+- magic n°
 
 ```
 ./hedgen2c e hello.png helogoencrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogodecrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogocorruptedonpurpose.png 6969
 ``` 
 
 Works off any number between 0 and 4294967295. And logs on the same file. 
-IF you were to encrypt something and delete this file make sure to remember your magic number. 
+If you were to encrypt something and delete this file make sure to remember your magic number. 
 
         # Example #I for in #O for out
         """
