@@ -6,6 +6,54 @@ KVM, Qemu, Iso Image
 
 Run elevated as the nature of the script.
 
+## Get it running:
+
+Create a `d` folder for your ISOs(`antiX-23.2_x64-full.iso `).
+
+And a `c` folder for your disk (`myvm.qcow2,...`). 
+
+Point to the right names in the config section of `vm.py` script. 
+
+Use relative paths: 
+
+```
+image_name = "./c/myvm.qcow2"
+iso_name = "./d/deb.iso"
+```
+
+Launch the script and type: `rdisk`. 
+
+This creates a 60GB disk and exits (it will not take 60gb, only a provision number.)
+
+Launch the script again and `brick` this boots the ISO, when done with install you can close the Qemu window. 
+Program then boots you off C drive automatically. 
+
+It will open again! We want to be on the disk instead of ISO after initial-install. This let's you do post-install basics. 
+
+Finally, now you can use these options or just any input to skip and run the normal encryption/decryption mechanisms. 
+Program detects automatically if it's encrypted or not using the `.bin` format.
+
+----
+
+## How does it encrypt?
+
+./lib/hedgen2c usage:
+
+```
+- e/d flag
+- source
+- destination
+- magic n°
+```
+
+```
+./hedgen2c e hello.png helogoencrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogodecrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogocorruptedonpurpose.png 6969
+``` 
+
+## Demo
+
+https://github.com/user-attachments/assets/dfe4d7fa-962c-4f8a-a551-0506bdbe4219
+
 ### How it works
 
 1. Bit level manipulation to encrypt at rest based on a local secret
@@ -83,51 +131,3 @@ size = "60G"
 ram = 8096
 cores = 12
 ```
-
-## Get it running:
-
-Create a `d` folder for your ISOs(`antiX-23.2_x64-full.iso `).
-
-And a `c` folder for your disk (`myvm.qcow2,...`). 
-
-Point to the right names in the config section of `vm.py` script. 
-
-Use relative paths: 
-
-```
-image_name = "./c/myvm.qcow2"
-iso_name = "./d/deb.iso"
-```
-
-Launch the script and type: `rdisk`. 
-
-This creates a 60GB disk and exits (it will not take 60gb, only a provision number.)
-
-Launch the script again and `brick` this boots the ISO, when done with install you can close the Qemu window. 
-Program then boots you off C drive automatically. 
-
-It will open again! We want to be on the disk instead of ISO after initial-install. This let's you do post-install basics. 
-
-Finally, now you can use these options or just any input to skip and run the normal encryption/decryption mechanisms. 
-Program detects automatically if it's encrypted or not using the `.bin` format.
-
-----
-
-## How does it encrypt?
-
-./lib/hedgen2c usage:
-
-```
-- e/d flag
-- source
-- destination
-- magic n°
-```
-
-```
-./hedgen2c e hello.png helogoencrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogodecrypted.png 420 && ./hedgen2c d helogoencrypted.png helogogocorruptedonpurpose.png 6969
-``` 
-
-## Demo
-
-https://github.com/user-attachments/assets/dfe4d7fa-962c-4f8a-a551-0506bdbe4219
