@@ -15,15 +15,16 @@ With the only way to reverse is using the same magic number (`.key.local` file).
 
 ```
 Elevated: True
-Already executable
-Enrypted ./c/myvm.qcow2.bin detected.
-Individual sessions:
-10
-File timestamps match (0.00s difference).
-Decrypting file: ./c/myvm.qcow2.bin to ./c/myvm.qcow2
-Total size: 3446.88 MB
-Progress: [====================] 100.0% (740.66 MB/s)
-Finished! Processed 3446.88 MB in 4.65 seconds (740.66 MB/s)
+HEDGEN2C 1.3.1
+Enrypted ./c/myvm2.qcow2.bin detected.
+Individual sessions on key:
+5
+VM intcheck: Time matches: (1.00s difference).
+Decrypting file: ./c/myvm2.qcow2.bin to ./c/myvm2.qcow2
+Total size: 9327.25 MB
+Progress: [====================] 100.0% (605.67 MB/s)
+Finished! Processed 9327.25 MB in 15.40 seconds (605.67 MB/s)
+
  ```
 
 2. Performs great on larger disks too:
@@ -37,15 +38,24 @@ Finished! Processed 11225.75 MB in 18.66 seconds (601.74 MB/s)
 
 3. Custom thoughtful features
 ``` 
-("WARNING Options are shown bcs you are <at rest> but can be dangerous!")
+Individual sessions on key:
+5
+VM intcheck: Time matches: (1.00s difference).
+Decrypting file: ./c/myvm2.qcow2.bin to ./c/myvm2.qcow2
+Total size: 9327.25 MB
+Progress: [====================] 100.0% (605.67 MB/s)
+Finished! Processed 9327.25 MB in 15.40 seconds (605.67 MB/s)
+WARNING Options are shown bcs you are <at rest> but can be dangerous! Press any key to just boot.
+##########################################
+ r       : Refresh key and logs
+ potk    : Delete key and encrypt?!
+ rdisk   : Resets disk totally
+ brick   : Boot off the iso, restart
+ duck    : Temp disk from current
+ exit    : Without encrypting back
+##########################################
+Any to continue or choice:
 
-(" r  : Refresh the key and logs (usually for new machines)")
-(" d  : Delete the key totally. (Write it down, if you wish to re-use)")
-(" brick  : Boot off the iso but keeping same disk, then restart on C.")
-(" rdisk  : Resets the disk totally.")
-(" exit  : Without encrypting back.")
-
-("Any key to skip (boot normally) or choice: ")
 ``` 
 
 ----
