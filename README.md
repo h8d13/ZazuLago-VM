@@ -84,30 +84,9 @@ Progress: [====================] 100.0% (601.74 MB/s)
 Finished! Processed 11225.75 MB in 18.66 seconds (601.74 MB/s)
  ```
 
-3. Custom thoughtful features
-``` 
-Individual sessions on key:
-5
-VM intcheck: Time matches: (1.00s difference).
-Decrypting file: ./c/myvm2.qcow2.bin to ./c/myvm2.qcow2
-Total size: 9327.25 MB
-Progress: [====================] 100.0% (605.67 MB/s)
-Finished! Processed 9327.25 MB in 15.40 seconds (605.67 MB/s)
-WARNING Options are shown bcs you are <at rest> but can be dangerous! Press any key to just boot.
-##########################################
- r       : Refresh key and logs
- potk    : Delete key and encrypt?!
- rdisk   : Resets disk totally
- brick   : Boot off the iso, restart
- duck    : Temp disk from current
- exit    : Without encrypting back
-##########################################
-Any to continue or choice:
-
-``` 
 
 ----
-4. Backtacing
+3. Backtacing
 Works off any number between 0 and 4294967295. And logs on the same file. 
 If you were to encrypt something and delete this file make sure to remember your magic number. 
 
@@ -125,11 +104,42 @@ Like tailing network, etc
 
 Uses simple shell scripting to be configurable (thanks to Qemu commands):
 ``` 
-image_name = "./c/myvm.qcow2"
-iso_name = "./d/deb.iso"
-size = "60G"
+######## CONFIG HERE ##########
+iso_dir_path = "./d/"
+###############################
+iso_name = "./d/alpine.iso"
+#iso_name = "./d/antix.iso"
+###############################
+disks_dir_path = "./c/"
+###############################
+#image_name = "./c/myvm5.qcow2"     # > cachyos
+#image_name = "./c/myvm4.qcow2"     # > alpine
+#image_name = "./c/myvm3.qcow2"     # > popos
+#image_name = "./c/myvm2.qcow2"     # > antix
+#image_name = "./c/myvm1.qcow2"     # > deb
+#image_name = "./c/myvm0.qcow2"     # > tiny11
+
+## Use more descriptive names for disks especially to recognize later or use right column. ## On linux file extensions don't mean shit, user could just mention ex: 'disk1' should still work. Careful most of this script is case sensitive as it's all shell scripting.
+
+######### EXTERIOR ###########
+# For second disk
+mount_point="../VMs/e"
+enable_mp=True
+image_name = f'{mount_point}/myvm4.qcow2'
+
+# For conk/conkd command > Allows you to install on external media
+target_name = "sdb"
+target=f'/dev/{target_name}'
+########
+
+##### SPECS CONFIG
+arch="x86_64"
 ram = 8096
-cores = 12
+cores = 8
+
+# Sometimes
+size = "60G"
+###############################
 ```
 
 ## Full output examples with optional features
