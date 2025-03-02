@@ -16,7 +16,8 @@ print(f'Elevated: {is_admin}')
 username = getpass.getuser()
 ## Mark the local .vmkey.local with session user (ie: sharing image to users, common in VM setups)
 y = uuid.uuid4()
-short_uuid = str(y).replace('-', '')[:6]
+short_uuid = str(y.int)[:6]
+spec_chars = ['\\', '|', '/', '-']
 ## User might have to enable hidden files to see key file.
 
 ## Okay wild we have to make a C sript executable
@@ -45,28 +46,52 @@ def check_file_exists(file_path):
     return os.path.exists(file_path)
 
 ## Illustrative replace with your own values.
+## Treid to make it as intuitive as possible.
+# d for ISOs
+# c for Disks
+# e for external
+
 ######## CONFIG HERE ##########
 iso_dir_path = "./d/"
 ###############################
 iso_name = "./d/alpine.iso"
 #iso_name = "./d/antix.iso"
 ###############################
-disks_dir_path = "./c/" # Used to list images
+disks_dir_path = "./c/"
 ###############################
 #image_name = "./c/myvm5.qcow2"     # > cachyos
-image_name = "./c/myvm4.qcow2"      # > alpine
+#image_name = "./c/myvm4.qcow2"     # > alpine
 #image_name = "./c/myvm3.qcow2"     # > popos
 #image_name = "./c/myvm2.qcow2"     # > antix
-#image_name = "./c/myvm.qcow2"      # > deb
+#image_name = "./c/myvm1.qcow2"     # > deb
+#image_name = "./c/myvm0.qcow2"     # > tiny11
 
-## Use more descriptive names for disks especially to recognize later or use right column. ## On linux file extensions don't mean shit, user could just mention ex: 'disk1' should still work.
+## Use more descriptive names for disks especially to recognize later or use right column. ## On linux file extensions don't mean shit, user could just mention ex: 'disk1' should still work. Careful most of this script is case sensitive as it's all shell scripting.
 
-size = "60G" ## Pre-alocation, will not take full size.
+######### EXTERIOR ###########
+# For second disk
+mount_point="../VMs/e"
+enable_mp=True
+image_name = f'{mount_point}/myvm4.qcow2'
+
+# For conk/conkd command > Allows you to install on external media (TODO: user should format before manually... Annoying, add a command)
+target_name = "sdb"
+target=f'/dev/{target_name}'
+########
+
+##### SPECS CONFIG
+arch="x86_64"
 ram = 8096
 cores = 8
 
-
+# Sometimes
+size = "60G"
 ###############################
+
+if enable_mp is True:
+    ensure_dir_exists(mount_point)
+else:
+    Print(f"Double disk: {enable}")
 
 def create_reset_disk(image_name, size):
     # Reset the current disk path
@@ -80,27 +105,32 @@ def create_disk(chosen_name, csize):
 
 def boot_vm(image_name, iso_name):
     # Boot the VM from the ISO
-    command = f"qemu-system-x86_64 -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -cdrom {iso_name} -boot d"
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -cdrom {iso_name} -boot d"
+    subprocess.run(command, shell=True)
+
+def run_cvm(c_image_name):
+    print(f'Started VM {cores} cores and {ram} M.')
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c"
+    ##
     subprocess.run(command, shell=True)
 
 def run_vm(image_name):
-    # Run the VM
-    print(f'Started {image_name}, with {cores} cores and {ram} M.')
-    command = f"qemu-system-x86_64 -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c"
+    print(f'Started VM, {cores} cores and {ram} M.')
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c"
     ##
     subprocess.run(command, shell=True)
 
 def boot_tailvm(image_name, iso_name):
     # Boot the VM from the ISO
-    command = f"qemu-system-x86_64 -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -cdrom {iso_name} -boot d  -serial mon:stdio -display none"
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -cdrom {iso_name} -boot d  -serial mon:stdio -display none"
     subprocess.run(command, shell=True)
 
 import signal
 
 def run_tailvm(image_name):
     # Run the VM
-    print(f"Started {image_name}, {cores} cores {ram} MB RAM.")
-    command = f"qemu-system-x86_64 -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c -serial mon:stdio -display none"
+    print(f"Started VM, {cores} cores {ram} MB RAM.")
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c -serial mon:stdio -display none"
 
     try:
         # Start the QEMU process
@@ -123,10 +153,24 @@ def run_tailvm(image_name):
     finally:
         print("Continuing with the script.")
 
+def simulate_spin_animation(duration=10):
+    start_time = time.time()  # Record the start time
+    i = 0
+    # Keep spinning until the duration has passed
+    while time.time() - start_time < duration:
+        sys.stdout.write(f"\r{spec_chars[i]}")  # Write the animation character
+        sys.stdout.flush()  # Ensure the character is printed immediately
+        i = (i + 1) % 4  # Cycle through the characters
+        time.sleep(0.1)  # Delay between each update
+
+    # Clear the line after the animation finishes
+    sys.stdout.flush()
+
 def run_vncvm(image_name):
     # Run the VM
     print(f"Started {image_name}, with {cores} cores and {ram} MB of RAM.")
-    command = f"qemu-system-x86_64 -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c -serial mon:stdio -display none -vnc :0"
+    simulate_spin_animation(duration=5)
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c -serial mon:stdio -display none -vnc :0"
     try:
         # Start the QEMU process
         process = subprocess.Popen(command, shell=True)
@@ -149,8 +193,6 @@ def run_vncvm(image_name):
         print("Continuing with the script.")
 
 def temp_disk(image_name):
-    spec_chars = ['\\', '|', '/', '-']
-    i = 0
     try:
         # Get the directory and filename separately
         dir_name = os.path.dirname(image_name)  # Directory part of the original path
@@ -197,15 +239,17 @@ def temp_disk(image_name):
         print(f"An unexpected error occurred: {e}")
         sys.exit(1)
 
-def list_disks():
-    files = os.listdir(disks_dir_path)
+pattern = re.compile(r'^\d+')
 
-    for file in files:
-        file_path = os.path.join(disks_dir_path, file)
-        if os.path.isfile(file_path):
-            file_info = os.stat(file_path)
-            size = file_info.st_size
-            print(f"{file} - Size: {size} bytes")
+def list_disks(disks_dir_path):
+    # List files and their sizes
+    return [(file, os.stat(os.path.join(disks_dir_path, file)).st_size)
+            for file in os.listdir(disks_dir_path)
+            if os.path.isfile(os.path.join(disks_dir_path, file))]
+
+def find_files_with_numbers(file_data):
+    # Find files that start with numbers
+    return [entry for entry in file_data if pattern.match(entry[0])]
 
 def list_isos():
     files = os.listdir(iso_dir_path)
@@ -217,6 +261,24 @@ def list_isos():
             file_info = os.stat(file_path)
             size = file_info.st_size
             print(f"{file} - Size: {size} bytes")
+
+## Converts an qcow image to raw then dd to a usb stick.
+## dd is slow and copies even 0, you can try with conv=sparse argument but might corrupt media.
+## So I recommend using a USB stick that is not too large depending on system type...
+
+def boot_conkvm(iso_name, target):
+    # Boot the VM from the ISO
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -cdrom {iso_name} -boot d   -usb -device usb-storage,drive=mydrive -drive file={target},format=raw,if=none,id=mydrive "
+
+    subprocess.run(command, shell=True)
+
+def run_conkvm(target):
+    # Boot the VM from the ISO
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -boot c -usb -device usb-storage,drive=mydrive -drive file={target},format=raw,if=none,id=mydrive "
+
+    subprocess.run(command, shell=True)
+
+##Can do a multi traget one but need to specify order of boot using #-boot order=c,menu=on
 
 ###########################################
 def get_magic_number():
@@ -308,8 +370,7 @@ def decrypt_launch(image_name, x):
     command = f"ionice -c 1 -n 0 ./lib/hedgen2c d {image_name}.bin {image_name} {x}"
     subprocess.run(command, shell=True)
     os.remove(f'{image_name}.bin')
-
-
+    ## Remove it directly.
     hashed_image_name = hashlib.sha256(str(image_name).encode('utf-8')).hexdigest()[:8]
 
     # Launch signature
@@ -346,9 +407,10 @@ def postencrypt():
 def main():
     if is_admin:
         ensure_dir_exists(disks_dir_path)
-        ensure_dir_exists('./d')
+        ensure_dir_exists(iso_dir_path)
         check_file_exists(image_name)
 
+        print (f'DEBUG: {image_name} C and {iso_name} D')
         # Check if .bin if yes load key and decrypt
         if os.path.exists(f"{image_name}.bin"):
             print(f"Enrypted {image_name}.bin detected.")
@@ -358,16 +420,18 @@ def main():
         else:
             # VM is not .bin (canceled midway) or deleted files
             if os.path.exists(".vmkey.local"):
-                print (f"No encrypted image detected.")
+                print (f"No encrypted image detected. But found a key hehe.")
 
                 ## Just load the key and proceed
                 x = load_key()
             else:
-                print (f"No key detected but found {image_name}.")
+                print (f"No key, no problem.")
                 ## Actual first run
                 x = get_magic_number()
                 print("Creating original key")
                 save_key(x)
+
+        ### Menu display at rest only
 
         print("Prescription v1.3.1")
         print(f"WARNING Options are shown bcs you <at rest> but\n can be dangerous! Press any key to boot normally.")
@@ -375,22 +439,27 @@ def main():
         print(" r       : Refresh key and logs")
         print(" ilist   : Prints ISOs in dir")
         print(" dlist   : Prints disks in dir")
+        print(" temk    : Print only temp disks")
         print(" cdisk   : Creates <name> <x_size>")
-        print(" rdisk   : Resets current disk.")
+        print(" rdisk   : Resets current disk")
         print(" brick   : Boot off the ISO + Restart")
-        print(" taild   : Run headless w/ serial logs")
-        print(" bootk   : Boot headless w/ serial logs")
-        print(" vnck    : Boot headless w/ serial logs + VNC")
+        print(" bootk   : Boot ISO headless w slogs")
+        print(" taild   : Run headless w slogs")
+        print(" vnck    : Run headless w slogs, VNC :0")
         print(" duck    : Temp disk from current")
+        print(" mayk    : Maybe disk from current")
         print(" dupk    : Perm disk from current")
+        print(f" conk    : Boot ISO with attach {target}")
+        print(f" conkd   : Run with attach {target}")
         print(" potk    : Delete key and encrypt?!")
         print(" exit    : Without encrypting back")
         print ("##########################################")
         print (f"NOTE: For headless sesh make sure to shutdown\n properly using: 'poweroff' or similar dep on ISO.")
 
-        choice = input(f"Any to continue or choice:\n")
+        choice = input(f"Any to continue normal DEC/ENC or choice:\n")
         if choice.lower() == 'r':
             x = refresh_key()
+            sys.exit()
             ## This is chill, we unencrypted and we can refresh key/logs safely, unless user fucked his configs, then it's corrupted lol. Try again loser.
 
         if choice.lower() == 'ilist':
@@ -401,9 +470,15 @@ def main():
             list_disks()
             sys.exit()
 
+        if choice.lower() == "temk":
+            file_data = list_disks(disks_dir_path)
+            files_with_numbers = find_files_with_numbers(file_data)
+            for file, size in files_with_numbers:
+                print(f"Temp: {file} - Size: {size} bytes")
+
         if choice.lower() == 'cdisk':
             # Ask the user for input in the format <name> <number>
-            user_input = input("Enter name and size (ex:'myvm2 60'): ")
+            user_input = input("Name and size (ex:'myvm2 60'): ")
 
             # Split the input into name and number
             try:
@@ -420,7 +495,7 @@ def main():
                 print("Error: Please enter both name and size (e.g., 'disk1 60').")
 
         # User just wants to reset disk without specifying name/size
-        # Destructive :D
+        # Destructive but so is my ex :D
         if choice.lower() =='rdisk':
             create_reset_disk(image_name, size)
             print(f"Formated disk {image_name} with {size}.")
@@ -493,6 +568,34 @@ def main():
             encrypt_exit(image_name, x)
             sys.exit()
 
+        # Same but ask is save changes
+        if choice.lower() == "mayk":
+            print("Running maik command...")
+            # Call temp_disk
+            temp_name = temp_disk(image_name)
+            print("VM Maik Running...")
+            run_vm(temp_name)
+            mchoice=input("Do you want to save this image? (enc/raw/no)")
+            if mchoice.lower() == "enc":
+                encrypt_exit(temp_name, x)
+            if mchoice.lower() == "raw":
+                sys.exit()
+            else:
+                os.remove(temp_name)
+            # Encrypt original too
+            encrypt_exit(image_name, x)
+            sys.exit()
+
+        if choice.lower() =='conk':
+            print("VM Conk Running...")
+            boot_conkvm(iso_name, target)
+            sys.exit()
+
+        if choice.lower() =='conkd':
+            print("VM Conkd Running...")
+            run_conkvm(target)
+            sys.exit()
+
         if choice.lower() =='exit':
             print("Exiting without encrypting.")
             sys.exit()
@@ -559,4 +662,17 @@ if __name__ == "__main__":
 # redirect ouput: -serial mon:stdio
 # redirect pulseaudio: -soundhw ac97
 
+##
+
+### Multi set up : Cool because it allows you to manipulate other filesystems within a VM?
+# qemu-system-{arch} \
+#   -m 2048 \
+#   -usb \
+#   -device usb-storage,drive=drive1 \
+#   -drive file=/dev/sdX,format=raw,if=none,id=drive1 \
+#   -device usb-storage,drive=drive2 \
+#   -drive file=/dev/sdY,format=raw,if=none,id=drive2 \
+#   -device usb-storage,drive=drive3 \
+#   -drive file=/dev/sdZ,format=raw,if=none,id=drive3 \
+#   -boot order=c
 
