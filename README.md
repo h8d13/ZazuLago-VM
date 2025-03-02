@@ -131,3 +131,51 @@ size = "60G"
 ram = 8096
 cores = 12
 ```
+
+## Full output examples with optional features
+
+  └──╼ $sudo python3 vm.py
+  Elevated: True
+  HEDGEN2C 1.3.1
+  Directory '../VMs/e' checked.
+  Directory './c/' checked.
+  Directory './d/' checked.
+  DEBUG: ../VMs/e/myvm4.qcow2 C and ./d/alpine.iso D
+  Enrypted ../VMs/e/myvm4.qcow2.bin detected.
+  Individual normal sesh on key:
+  45
+  VM intcheck: Time matches: (0.00s difference).
+  Decrypting file: ../VMs/e/myvm4.qcow2.bin to ../VMs/e/myvm4.qcow2
+  Total size: 4390.69 MB
+  Progress: [====================] 100.0% (711.31 MB/s)
+  Finished! Processed 4390.69 MB in 6.17 seconds (711.31 MB/s)
+  Prescription v1.3.1
+  WARNING Options are shown bcs you <at rest> but
+   can be dangerous! Press any key to boot normally.
+  ##########################################
+   r       : Refresh key and logs
+   ilist   : Prints ISOs in dir
+   dlist   : Prints disks in dir
+   temk    : Print only temp disks
+   cdisk   : Creates <name> <x_size>
+   rdisk   : Resets current disk
+   brick   : Boot off the ISO + Restart
+   bootk   : Boot ISO headless w slogs
+   taild   : Run headless w slogs
+   vnck    : Run headless w slogs, VNC :0
+   duck    : Temp disk from current
+   mayk    : Maybe disk from current
+   dupk    : Perm disk from current
+   conk    : Boot ISO with attach /dev/sdb
+   conkd   : Run with attach /dev/sdb
+   potk    : Delete key and encrypt?!
+   exit    : Without encrypting back
+  ##########################################
+  NOTE: For headless sesh make sure to shutdown
+   properly using: 'poweroff' or similar dep on ISO.
+  Any to continue normal DEC/ENC or choice:
+   
+  Continuing with boot then encryption...
+  VM Running...
+  Started VM, 8 cores and 8096 M.
+
