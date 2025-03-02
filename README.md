@@ -133,7 +133,7 @@ cores = 12
 ```
 
 ## Full output examples with optional features
-
+``` 
   └──╼ $sudo python3 vm.py
   Elevated: True
   HEDGEN2C 1.3.1
@@ -178,4 +178,4 @@ cores = 12
   Continuing with boot then encryption...
   VM Running...
   Started VM, 8 cores and 8096 M.
-
+```  
