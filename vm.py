@@ -73,8 +73,10 @@ disks_dir_path = "./c/"
 mount_point="../VMs/e"
 enable_mp=True
 image_name = f'{mount_point}/myvm4.qcow2'
-
-# For conk/conkd command > Allows you to install on external media (TODO: user should format before manually... Annoying, add a command)
+## C command for custom or uses top by default. If you disable multi point you need to enable a valid image above and commen't out this line above.
+## Custom to a "neutral" VM quickly using c command
+c_image_name="./c/myvm3.qcow2"
+# For conk/conkd command > Allows you to install on external media (TODO: user has to format b4 manually...)
 target_name = "sdb"
 target=f'/dev/{target_name}'
 ########
@@ -84,7 +86,7 @@ arch="x86_64"
 ram = 8096
 cores = 8
 
-# Sometimes
+# Sometimes depeding on your iso (can make smaller/larger, just pre-allocation, doesnt take the space directly)
 size = "60G"
 ###############################
 
@@ -110,7 +112,7 @@ def boot_vm(image_name, iso_name):
 
 def run_cvm(c_image_name):
     print(f'Started VM {cores} cores and {ram} M.')
-    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c"
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {c_image_name} -boot c"
     ##
     subprocess.run(command, shell=True)
 
@@ -262,10 +264,6 @@ def list_isos():
             size = file_info.st_size
             print(f"{file} - Size: {size} bytes")
 
-## Converts an qcow image to raw then dd to a usb stick.
-## dd is slow and copies even 0, you can try with conv=sparse argument but might corrupt media.
-## So I recommend using a USB stick that is not too large depending on system type...
-
 def boot_conkvm(iso_name, target):
     # Boot the VM from the ISO
     command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -cdrom {iso_name} -boot d   -usb -device usb-storage,drive=mydrive -drive file={target},format=raw,if=none,id=mydrive "
@@ -278,6 +276,9 @@ def run_conkvm(target):
 
     subprocess.run(command, shell=True)
 
+## TODO: cupd command just the same but with two disks (idk what kind of stupid shit people do)
+## One like above and the other the specified (image_name) You can have a weird dual system I guess
+## I just like legos
 ##Can do a multi traget one but need to specify order of boot using #-boot order=c,menu=on
 
 ###########################################
@@ -434,8 +435,9 @@ def main():
         ### Menu display at rest only
 
         print("Prescription v1.3.1")
-        print(f"WARNING Options are shown bcs you <at rest> but\n can be dangerous! Press any key to boot normally.")
+        print(f"WARNING Options are shown bcs you <at rest> but\n can be dangerous! Press any key to boot normally\n Make sure to update your config approprietly after making important changes.")
         print ("##########################################")
+        print(" c       : Run custom no encrypt")
         print(" r       : Refresh key and logs")
         print(" ilist   : Prints ISOs in dir")
         print(" dlist   : Prints disks in dir")
@@ -456,7 +458,15 @@ def main():
         print ("##########################################")
         print (f"NOTE: For headless sesh make sure to shutdown\n properly using: 'poweroff' or similar dep on ISO.")
 
-        choice = input(f"Any to continue normal DEC/ENC or choice:\n")
+        choice = input(f"Any to continue normal boot+ENC or choice:\n")
+
+## Features
+
+        if choice.lower() == 'c':
+            # Convenience to switch quickly, no encryption or anything here. Noob option.
+            run_cvm(c_image_name)
+            sys.exit()
+
         if choice.lower() == 'r':
             x = refresh_key()
             sys.exit()
