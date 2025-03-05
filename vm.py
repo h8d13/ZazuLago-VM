@@ -9,6 +9,7 @@ import getpass
 import re
 import datetime
 import hashlib
+import signal
 
 is_admin = os.getuid() == 0
 print(f'Elevated: {is_admin}')
@@ -25,7 +26,7 @@ spec_chars = ['\\', '|', '/', '-']
 
 file_path = './lib/hedgen2c'
 if os.access(file_path, os.X_OK):
-    print("HEDGEN2C 1.3.1")
+    print(f"HEDGEN2C OK.")
 else:
     subprocess.run('chmod +x ./lib/hedgen2c', shell=True, capture_output=True)
     print(f"Made {file_path} executable.")
@@ -55,45 +56,63 @@ def check_file_exists(file_path):
 iso_dir_path = "./d/"
 ###############################
 iso_name = "./d/alpine.iso"
-#iso_name = "./d/antix.iso"
 ###############################
 disks_dir_path = "./c/"
 ###############################
 #image_name = "./c/myvm5.qcow2"     # > cachyos
-#image_name = "./c/myvm4.qcow2"     # > alpine
+image_name = "./c/myvm4.qcow2"     # > alpine
 #image_name = "./c/myvm3.qcow2"     # > popos
 #image_name = "./c/myvm2.qcow2"     # > antix
 #image_name = "./c/myvm1.qcow2"     # > deb
 #image_name = "./c/myvm0.qcow2"     # > tiny11
 
+## Custom to non-encrypted VM quickly using c command
+#c_image_name="./c/myvm.qcow2"
+
 ## Use more descriptive names for disks especially to recognize later or use right column. ## On linux file extensions don't mean shit, user could just mention ex: 'disk1' should still work. Careful most of this script is case sensitive as it's all shell scripting.
 
-######### EXTERIOR ###########
-# For second disk
-mount_point="../VMs/e"
-enable_mp=True
-image_name = f'{mount_point}/myvm4.qcow2'
-## C command for custom or uses top by default. If you disable multi point you need to enable a valid image above and commen't out this line above.
-## Custom to a "neutral" VM quickly using c command
-c_image_name="./c/myvm3.qcow2"
-# For conk/conkd command > Allows you to install on external media (TODO: user has to format b4 manually...)
-target_name = "sdb"
-target=f'/dev/{target_name}'
-########
-
-##### SPECS CONFIG
+######## SPECS CONFIG #########
 arch="x86_64"
 ram = 8096
 cores = 8
 
-# Sometimes depeding on your iso (can make smaller/larger, just pre-allocation, doesnt take the space directly)
+# For rdisk command / avergae sized btw
 size = "60G"
+# For vnck command
+port = ":0"
+# Sometimes depeding on your iso (can make smaller/larger, just pre-allocation, doesnt take the space directly)
 ###############################
+
+######### EXTERIOR (Optional) ###########
+# For second disk, enable and check paths I mounted one up (relative)
+mount_point="../VMs/e"
+enable_mp=False
+
+# If mp false specify an normal image above.
+#image_name = f'{mount_point}/myvm4.qcow2'
+
+# For conk/conkd command > Allows you to install on external media (TODO: user has to format b4 manually...)
+target_name = "sda2"
+target=f'/dev/{target_name}'
+########
 
 if enable_mp is True:
     ensure_dir_exists(mount_point)
 else:
-    Print(f"Double disk: {enable}")
+    print(f"Double disk: {enable_mp}")
+
+def simulate_spin_animation(duration=10):
+    start_time = time.time()  # Record the start time
+    i = 0
+    # Keep spinning until the duration has passed
+    while time.time() - start_time < duration:
+        sys.stdout.write(f"\r{spec_chars[i]}")  # Write the animation character
+        sys.stdout.flush()  # Ensure the character is printed immediately
+        i = (i + 1) % 4  # Cycle through the characters
+        time.sleep(0.1)  # Delay between each update
+
+    # Clear the line after the animation finishes
+    sys.stdout.flush()
 
 def create_reset_disk(image_name, size):
     # Reset the current disk path
@@ -111,13 +130,13 @@ def boot_vm(image_name, iso_name):
     subprocess.run(command, shell=True)
 
 def run_cvm(c_image_name):
-    print(f'Started VM {cores} cores and {ram} M.')
+    print(f'Started VM {cores} cores {ram} M.')
     command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {c_image_name} -boot c"
     ##
     subprocess.run(command, shell=True)
 
 def run_vm(image_name):
-    print(f'Started VM, {cores} cores and {ram} M.')
+    print(f'Started VM, {cores} cores {ram} M.')
     command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c"
     ##
     subprocess.run(command, shell=True)
@@ -125,13 +144,18 @@ def run_vm(image_name):
 def boot_tailvm(image_name, iso_name):
     # Boot the VM from the ISO
     command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -cdrom {iso_name} -boot d  -serial mon:stdio -display none"
-    subprocess.run(command, shell=True)
-
-import signal
+    try:
+        subprocess.run(command, shell=True)
+    except Exception as e:
+        print(f"Error while running QEMU: {e}")
+    finally:
+        print("Continuing with the script.")
 
 def run_tailvm(image_name):
     # Run the VM
     print(f"Started VM, {cores} cores {ram} MB RAM.")
+    simulate_spin_animation(duration=10)
+
     command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c -serial mon:stdio -display none"
 
     try:
@@ -155,24 +179,12 @@ def run_tailvm(image_name):
     finally:
         print("Continuing with the script.")
 
-def simulate_spin_animation(duration=10):
-    start_time = time.time()  # Record the start time
-    i = 0
-    # Keep spinning until the duration has passed
-    while time.time() - start_time < duration:
-        sys.stdout.write(f"\r{spec_chars[i]}")  # Write the animation character
-        sys.stdout.flush()  # Ensure the character is printed immediately
-        i = (i + 1) % 4  # Cycle through the characters
-        time.sleep(0.1)  # Delay between each update
-
-    # Clear the line after the animation finishes
-    sys.stdout.flush()
 
 def run_vncvm(image_name):
     # Run the VM
     print(f"Started {image_name}, with {cores} cores and {ram} MB of RAM.")
-    simulate_spin_animation(duration=5)
-    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c -serial mon:stdio -display none -vnc :0"
+    simulate_spin_animation(duration=10)
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c -serial mon:stdio -display none -vnc {port}"
     try:
         # Start the QEMU process
         process = subprocess.Popen(command, shell=True)
@@ -240,18 +252,14 @@ def temp_disk(image_name):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         sys.exit(1)
-
-pattern = re.compile(r'^\d+')
+    finally:
+        print("Continuing with the script.")
 
 def list_disks(disks_dir_path):
     # List files and their sizes
     return [(file, os.stat(os.path.join(disks_dir_path, file)).st_size)
             for file in os.listdir(disks_dir_path)
             if os.path.isfile(os.path.join(disks_dir_path, file))]
-
-def find_files_with_numbers(file_data):
-    # Find files that start with numbers
-    return [entry for entry in file_data if pattern.match(entry[0])]
 
 def list_isos():
     files = os.listdir(iso_dir_path)
@@ -267,18 +275,57 @@ def list_isos():
 def boot_conkvm(iso_name, target):
     # Boot the VM from the ISO
     command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -cdrom {iso_name} -boot d   -usb -device usb-storage,drive=mydrive -drive file={target},format=raw,if=none,id=mydrive "
-
-    subprocess.run(command, shell=True)
+    try:
+        subprocess.run(command, shell=True)
+    except Exception as e:
+        print(f"Error while running QEMU: {e}")
+    finally:
+        print("Continuing with the script.")
 
 def run_conkvm(target):
-    # Boot the VM from the ISO
     command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -boot c -usb -device usb-storage,drive=mydrive -drive file={target},format=raw,if=none,id=mydrive "
 
-    subprocess.run(command, shell=True)
+    try:
+        subprocess.run(command, shell=True)
+    except Exception as e:
+        print(f"Error while running QEMU: {e}")
+    finally:
+        print("Continuing with the script.")
 
-## TODO: cupd command just the same but with two disks (idk what kind of stupid shit people do)
-## One like above and the other the specified (image_name) You can have a weird dual system I guess
-## I just like legos
+def run_cupkvm(target):
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -boot c -usb -device usb-storage,drive=mydrive -drive file={target},format=raw,if=none,id=mydrive -hda {image_name}"
+    try:
+        subprocess.run(command, shell=True)
+    except Exception as e:
+        print(f"Error while running QEMU: {e}")
+    finally:
+        print("Continuing with the script.")
+
+def boot_cupkvm(target):
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -boot d -usb -device usb-storage,drive=mydrive -drive file={target},format=raw,if=none,id=mydrive -hda {image_name} -cdrom {iso_name}"
+    try:
+        subprocess.run(command, shell=True)
+    except Exception as e:
+        print(f"Error while running QEMU: {e}")
+    finally:
+        print("Continuing with the script.")
+
+def generate_mac():
+    # Generate a random MAC address in the format '52:54:00:xx:xx:xx'
+    mac = "52:54:00:" + ":".join(f"{random.randint(0, 255):02x}" for _ in range(3))
+    return mac
+
+def run_cmacvm(image_name, mac=generate_mac()):
+    print(f'Started VM, {cores} cores {ram} M.')
+    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -boot c -netdev user,id=mynet0 -device e1000,netdev=mynet0,mac={mac}"
+    ##
+    try:
+        subprocess.run(command, shell=True)
+    except Exception as e:
+        print(f"Error while running QEMU: {e}")
+    finally:
+        print("Continuing with the script.")
+
 ##Can do a multi traget one but need to specify order of boot using #-boot order=c,menu=on
 
 ###########################################
@@ -406,12 +453,17 @@ def postencrypt():
 ############ FLOW CTRL
 
 def main():
+
     if is_admin:
         ensure_dir_exists(disks_dir_path)
         ensure_dir_exists(iso_dir_path)
-        check_file_exists(image_name)
+        check_file_exists(iso_name)
 
-        print (f'DEBUG: {image_name} C and {iso_name} D')
+        if check_file_exists(image_name):
+            print (f'DEBUG: {image_name} C')
+        else:
+            print (f"DEBUG: {iso_name} D")
+
         # Check if .bin if yes load key and decrypt
         if os.path.exists(f"{image_name}.bin"):
             print(f"Enrypted {image_name}.bin detected.")
@@ -421,7 +473,7 @@ def main():
         else:
             # VM is not .bin (canceled midway) or deleted files
             if os.path.exists(".vmkey.local"):
-                print (f"No encrypted image detected. But found a key hehe.")
+                print (f"No encrypted image detected. But found key.")
 
                 ## Just load the key and proceed
                 x = load_key()
@@ -434,29 +486,33 @@ def main():
 
         ### Menu display at rest only
 
-        print("Prescription v1.3.1")
-        print(f"WARNING Options are shown bcs you <at rest> but\n can be dangerous! Press any key to boot normally\n Make sure to update your config approprietly after making important changes.")
-        print ("##########################################")
+        print(f"WARNING Options are shown bcs you <at rest> but\n can be dangerous! Press any key to boot normal\n Make updates configs after changes or risk bricking.")
+        print("##########################################")
+        print("##PRESCRIPTION v1.3.1: H8D13's QEMU MENU##")
+        print("##########################################")
         print(" c       : Run custom no encrypt")
         print(" r       : Refresh key and logs")
         print(" ilist   : Prints ISOs in dir")
         print(" dlist   : Prints disks in dir")
-        print(" temk    : Print only temp disks")
         print(" cdisk   : Creates <name> <x_size>")
-        print(" rdisk   : Resets current disk")
-        print(" brick   : Boot off the ISO + Restart")
-        print(" bootk   : Boot ISO headless w slogs")
-        print(" taild   : Run headless w slogs")
-        print(" vnck    : Run headless w slogs, VNC :0")
+        print(f" rdisk   : Resets current {image_name}")
+        print(" dupk    : Perm disk from current")
         print(" duck    : Temp disk from current")
         print(" mayk    : Maybe disk from current")
-        print(" dupk    : Perm disk from current")
-        print(f" conk    : Boot ISO with attach {target}")
-        print(f" conkd   : Run with attach {target}")
-        print(" potk    : Delete key and encrypt?!")
+        print ("==========================================")
+        print(" brick   : Boot ISO + Restart to Disk")
+        print(" bootk   : Boot ISO headless w slogs")
+        print(f" conkd   : Boot ISO w {target}")
+        print(f" conk    : Run w {target}")
+        print(f" cupkd   : Boot ISO w {target} + Image")
+        print(f" cupk    : Run w {target} + Image")
+        print(" taild   : Run headless w slogs")
+        print(" vnck    : Run headless w slogs, VNC :0")
+        print(" macg    : Gen mac and start VM")
+        print(" potk    : Delete key and encrypt?!!")
         print(" exit    : Without encrypting back")
         print ("##########################################")
-        print (f"NOTE: For headless sesh make sure to shutdown\n properly using: 'poweroff' or similar dep on ISO.")
+        print (f"NOTE: For headless sesh make sure to shutdown\n use: 'poweroff', 'shutdown -h now' dep on ISO.")
 
         choice = input(f"Any to continue normal boot+ENC or choice:\n")
 
@@ -480,12 +536,6 @@ def main():
             list_disks()
             sys.exit()
 
-        if choice.lower() == "temk":
-            file_data = list_disks(disks_dir_path)
-            files_with_numbers = find_files_with_numbers(file_data)
-            for file, size in files_with_numbers:
-                print(f"Temp: {file} - Size: {size} bytes")
-
         if choice.lower() == 'cdisk':
             # Ask the user for input in the format <name> <number>
             user_input = input("Name and size (ex:'myvm2 60'): ")
@@ -499,6 +549,7 @@ def main():
                 # Create the disk with the formatted size
                 create_disk(chosen_name, csize)
                 print(f"Disk {chosen_name} with size {csize} created.")
+                print(f"Please update config to point to this disk.")
                 sys.exit()
 
             except ValueError:
@@ -508,7 +559,7 @@ def main():
         # Destructive but so is my ex :D
         if choice.lower() =='rdisk':
             create_reset_disk(image_name, size)
-            print(f"Formated disk {image_name} with {size}.")
+            print(f"Formated disk {image_name} with {size}. Recommend: brick")
             sys.exit()
 
         if choice.lower() == 'potk':
@@ -522,11 +573,12 @@ def main():
 
         # For this one we don't encrypt yet'
         if choice.lower() == 'brick':
-            print(f"Boot: {iso_name}. Might trigger restart, auto boot to C on end.")
+            print(f"Boot: {iso_name}. Will trigger restart, auto to C on close.")
             boot_vm(image_name, iso_name)
             print(f"Run: {image_name}. For initial config.")
             run_vm(image_name)
             print(f"Initial config done. Exiting.")
+            print(f"Recommend: dupk for initial back-up.")
             sys.exit()
 
 ##### Headless modes > Redirect to shell > Make sure user closes using poweroff/shutdown/reboot.
@@ -596,14 +648,31 @@ def main():
             encrypt_exit(image_name, x)
             sys.exit()
 
-        if choice.lower() =='conk':
-            print("VM Conk Running...")
-            boot_conkvm(iso_name, target)
+        if choice.lower() =='macg':
+            print("VM Macg Running...")
+            generate_mac()
+            run_cmacvm(image_name)
+            encrypt_exit(image_name, x)
             sys.exit()
 
         if choice.lower() =='conkd':
             print("VM Conkd Running...")
+            boot_conkvm(iso_name, target)
+            sys.exit()
+
+        if choice.lower() =='conk':
+            print("VM Conk Running...")
             run_conkvm(target)
+            sys.exit()
+
+        if choice.lower() =='cupk':
+            print("VM Cupk Running...")
+            run_cupkvm(target)
+            sys.exit()
+
+        if choice.lower() =='cupkd':
+            print("VM Cupkd Running...")
+            boot_cupkvm(target)
             sys.exit()
 
         if choice.lower() =='exit':
