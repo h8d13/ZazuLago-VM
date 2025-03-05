@@ -2,11 +2,11 @@ import subprocess
 import sys
 
 class Hedgen2c:
-    def __init__(self, file1, file2, x, mode):
+    def __init__(self, mode, file1, file2, x):
+        self.mode = mode
         self.file1 = file1
         self.file2 = file2
         self.x = x
-        self.mode = mode
 
     def run(self):
         # Construct the command based on the mode (either encrypt or decrypt)
@@ -30,5 +30,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Create an instance of Hedgen2c and run the appropriate action
-    hedgen = Hedgen2c(file1, file2, x, mode)
+    hedgen = Hedgen2c(mode, file1, file2, x)
     hedgen.run()
