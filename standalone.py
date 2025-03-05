@@ -17,6 +17,7 @@ if __name__ == "__main__":
     # Get arguments from the command line
     if len(sys.argv) != 5:
         print("Usage: python standalone.py [e/d] file1 file2 x")
+        print("x being a number between 0 and 4294967295")
         sys.exit(1)
 
     mode = sys.argv[1]  # 'e' for encrypt, 'd' for decrypt
