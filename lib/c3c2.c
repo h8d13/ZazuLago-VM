@@ -7,43 +7,23 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/mman.h>
 
-#define BUFFER_SIZE (32 * 1024 * 1024) // 32MB per thread buffer
+#define BUFFER_SIZE (16 * 1024 * 1024) // 16MB per thread
 #define MAX_THREADS 32
-#define CACHE_LINE 64
 
-// Align to cache line to prevent false sharing
 typedef struct {
     uint8_t *buffer;
     size_t length;
     uint64_t magic_number;
     size_t thread_id;
-    char padding[CACHE_LINE - sizeof(uint8_t*) - sizeof(size_t) - sizeof(uint64_t) - sizeof(size_t)];
-} __attribute__((aligned(CACHE_LINE))) ThreadData;
+} ThreadData;
 
-// Process data in 128-bit chunks when possible (using two 64-bit operations)
+// Process data in 64-bit chunks
 void process_data(uint8_t *buffer, size_t length, uint64_t magic_number) {
-    // Ensure buffer is aligned for optimal performance
-    uintptr_t addr = (uintptr_t)buffer;
-    size_t misalign = addr & 0x7;
+    uint64_t *buffer64 = (uint64_t *)buffer;
+    size_t length64 = length / 8;
     
-    // Handle misaligned start
-    for (size_t i = 0; i < misalign && i < length; i++) {
-        buffer[i] ^= (uint8_t)(magic_number >> (8 * (i % 8)));
-    }
-    
-    // Adjust buffer and length for aligned processing
-    uint64_t *buffer64 = (uint64_t *)(buffer + misalign);
-    size_t aligned_length = (length - misalign) & ~0x7;
-    size_t length64 = aligned_length / 8;
-    
-    // Prefetch hint for large arrays
-    #pragma GCC unroll 8
     for (size_t i = 0; i < length64; i++) {
-        // Prefetch data ahead
-        __builtin_prefetch(&buffer64[i + 16], 0, 0);
-        
         // XOR with magic number
         buffer64[i] ^= magic_number;
         
@@ -58,9 +38,11 @@ void process_data(uint8_t *buffer, size_t length, uint64_t magic_number) {
     }
     
     // Handle remaining bytes
-    size_t remaining_offset = misalign + aligned_length;
-    for (size_t i = remaining_offset; i < length; i++) {
-        buffer[i] ^= (uint8_t)(magic_number >> (8 * ((i - remaining_offset) % 8)));
+    uint8_t *remainder = buffer + (length64 * 8);
+    size_t remaining_bytes = length % 8;
+    
+    for (size_t i = 0; i < remaining_bytes; i++) {
+        remainder[i] ^= (uint8_t)(magic_number >> (8 * (i % 8)));
     }
 }
 
@@ -70,17 +52,21 @@ void* thread_process_data(void *arg) {
     // Generate a unique seed for this thread based on thread_id
     uint64_t thread_magic = data->magic_number ^ (data->thread_id * 0x123456789ABCDEFULL);
     
-    // Pin thread to a specific CPU core if possible (thread affinity)
-    #ifdef __linux__
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(data->thread_id % 32, &cpuset);
-    pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-    #endif
-    
     process_data(data->buffer, data->length, thread_magic);
     
     return NULL;
+}
+
+// Function to get number of available CPU cores
+int get_num_cores() {
+    int num_cores = 1; // Default to 1 if detection fails
+    
+    #ifdef _SC_NPROCESSORS_ONLN
+    num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+    if (num_cores < 1) num_cores = 1;
+    #endif
+    
+    return num_cores;
 }
 
 int main(int argc, char *argv[]) {
@@ -93,8 +79,8 @@ int main(int argc, char *argv[]) {
     const char *output_filename = argv[2];
     uint64_t magic_number = strtoull(argv[3], NULL, 0);
     
-    // Determine optimal number of threads (default to available cores)
-    int num_threads = sysconf(_SC_NPROCESSORS_ONLN);
+    // Determine number of threads (default to available cores)
+    int num_threads = get_num_cores();
     if (argc == 5) {
         int requested_threads = atoi(argv[4]);
         if (requested_threads > 0) {
@@ -103,18 +89,12 @@ int main(int argc, char *argv[]) {
     }
     if (num_threads > MAX_THREADS) num_threads = MAX_THREADS;
     
-    // Open input file
-    int input_fd = open(input_filename, O_RDONLY);
-    if (input_fd == -1) {
-        perror("Failed to open input file");
-        return 1;
-    }
+    printf("Using %d threads on this system\n", num_threads);
     
     // Get file size
     struct stat st;
-    if (fstat(input_fd, &st) != 0) {
+    if (stat(input_filename, &st) != 0) {
         perror("Failed to get file size");
-        close(input_fd);
         return 1;
     }
     size_t file_size = st.st_size;
@@ -122,123 +102,147 @@ int main(int argc, char *argv[]) {
     // Adjust number of threads for small files
     if (file_size < num_threads * BUFFER_SIZE / 2) {
         num_threads = (file_size / BUFFER_SIZE) + 1;
+        if (num_threads < 1) num_threads = 1;
+        printf("Adjusted to %d threads based on file size\n", num_threads);
     }
     
-    // Use memory mapping for input file
-    uint8_t *file_data = mmap(NULL, file_size, PROT_READ, MAP_SHARED, input_fd, 0);
-    if (file_data == MAP_FAILED) {
-        perror("Failed to memory map input file");
-        close(input_fd);
+    FILE *input_file = fopen(input_filename, "rb");
+    if (!input_file) {
+        perror("Failed to open input file");
         return 1;
     }
     
-    // Create output file
-    int output_fd = open(output_filename, O_RDWR | O_CREAT | O_TRUNC, 0644);
-    if (output_fd == -1) {
+    FILE *output_file = fopen(output_filename, "wb");
+    if (!output_file) {
         perror("Failed to open output file");
-        munmap(file_data, file_size);
-        close(input_fd);
-        return 1;
-    }
-    
-    // Set output file size
-    if (ftruncate(output_fd, file_size) == -1) {
-        perror("Failed to set output file size");
-        close(output_fd);
-        munmap(file_data, file_size);
-        close(input_fd);
-        return 1;
-    }
-    
-    // Memory map output file
-    uint8_t *output_data = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, output_fd, 0);
-    if (output_data == MAP_FAILED) {
-        perror("Failed to memory map output file");
-        close(output_fd);
-        munmap(file_data, file_size);
-        close(input_fd);
+        fclose(input_file);
         return 1;
     }
     
     // Start timing
-    struct timespec start_time, end_time;
-    clock_gettime(CLOCK_MONOTONIC, &start_time);
+    clock_t start = clock();
     
     // Allocate memory for thread data
-    ThreadData *thread_data = aligned_alloc(CACHE_LINE, num_threads * sizeof(ThreadData));
+    ThreadData *thread_data = malloc(num_threads * sizeof(ThreadData));
     pthread_t *threads = malloc(num_threads * sizeof(pthread_t));
+    uint8_t **buffers = malloc(num_threads * sizeof(uint8_t*));
     
-    if (!thread_data || !threads) {
+    if (!thread_data || !threads || !buffers) {
         perror("Failed to allocate memory for thread data");
+        free(buffers);
         free(threads);
         free(thread_data);
-        munmap(output_data, file_size);
-        close(output_fd);
-        munmap(file_data, file_size);
-        close(input_fd);
+        fclose(input_file);
+        fclose(output_file);
         return 1;
     }
     
-    // Calculate chunk size per thread
-    size_t chunk_size = (file_size + num_threads - 1) / num_threads;
-    // Round up to a multiple of 64 bytes (cache line) for better alignment
-    chunk_size = (chunk_size + 63) & ~63;
-    
-    // Create threads
+    // Allocate buffer for each thread
     for (int i = 0; i < num_threads; i++) {
-        size_t offset = i * chunk_size;
-        size_t length = chunk_size;
-        
-        // Adjust length for last chunk
-        if (offset + length > file_size) {
-            length = file_size - offset;
-        }
-        
-        // Skip creating thread if no data to process
-        if (length == 0) continue;
-        
-        // Copy data to output buffer first
-        memcpy(output_data + offset, file_data + offset, length);
-        
-        // Set up thread data
-        thread_data[i].buffer = output_data + offset;
-        thread_data[i].length = length;
-        thread_data[i].magic_number = magic_number;
-        thread_data[i].thread_id = i;
-        
-        int ret = pthread_create(&threads[i], NULL, thread_process_data, &thread_data[i]);
-        if (ret != 0) {
-            fprintf(stderr, "Failed to create thread %d\n", i);
-            // Continue with fewer threads
-            num_threads = i;
-            break;
+        buffers[i] = malloc(BUFFER_SIZE);
+        if (!buffers[i]) {
+            perror("Failed to allocate buffer");
+            // Clean up already allocated buffers
+            for (int j = 0; j < i; j++) {
+                free(buffers[j]);
+            }
+            free(buffers);
+            free(threads);
+            free(thread_data);
+            fclose(input_file);
+            fclose(output_file);
+            return 1;
         }
     }
     
-    // Wait for all threads to complete
-    for (int i = 0; i < num_threads; i++) {
-        pthread_join(threads[i], NULL);
-    }
+    // Process file in chunks
+    size_t total_processed = 0;
     
-    // Ensure all data is written to disk
-    msync(output_data, file_size, MS_SYNC);
+    while (total_processed < file_size) {
+        int active_threads = 0;
+        
+        // Read chunks and assign to threads
+        for (int i = 0; i < num_threads && total_processed < file_size; i++) {
+            size_t bytes_to_read = BUFFER_SIZE;
+            if (total_processed + bytes_to_read > file_size) {
+                bytes_to_read = file_size - total_processed;
+            }
+            
+            // Read chunk from file
+            size_t bytes_read = fread(buffers[i], 1, bytes_to_read, input_file);
+            if (bytes_read < bytes_to_read && !feof(input_file)) {
+                perror("Error reading from file");
+                for (int j = 0; j < num_threads; j++) {
+                    free(buffers[j]);
+                }
+                free(buffers);
+                free(threads);
+                free(thread_data);
+                fclose(input_file);
+                fclose(output_file);
+                return 1;
+            }
+            
+            thread_data[i].buffer = buffers[i];
+            thread_data[i].length = bytes_read;
+            thread_data[i].magic_number = magic_number;
+            thread_data[i].thread_id = i;
+            
+            int ret = pthread_create(&threads[i], NULL, thread_process_data, &thread_data[i]);
+            if (ret != 0) {
+                fprintf(stderr, "Failed to create thread %d\n", i);
+                for (int j = 0; j < num_threads; j++) {
+                    free(buffers[j]);
+                }
+                free(buffers);
+                free(threads);
+                free(thread_data);
+                fclose(input_file);
+                fclose(output_file);
+                return 1;
+            }
+            
+            active_threads++;
+            total_processed += bytes_read;
+        }
+        
+        // Wait for all active threads to complete
+        for (int i = 0; i < active_threads; i++) {
+            pthread_join(threads[i], NULL);
+            
+            // Write processed data to output file
+            if (fwrite(thread_data[i].buffer, 1, thread_data[i].length, output_file) != thread_data[i].length) {
+                perror("Failed to write to output file");
+                for (int j = 0; j < num_threads; j++) {
+                    free(buffers[j]);
+                }
+                free(buffers);
+                free(threads);
+                free(thread_data);
+                fclose(input_file);
+                fclose(output_file);
+                return 1;
+            }
+        }
+    }
     
     // Calculate and display performance metrics
-    clock_gettime(CLOCK_MONOTONIC, &end_time);
-    double elapsed_seconds = (end_time.tv_sec - start_time.tv_sec) + 
-                             (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
-    double speed_mbps = (file_size / (1024.0 * 1024.0)) / elapsed_seconds;
+    clock_t end = clock();
+    double elapsed_time = (double)(end - start) / CLOCKS_PER_SEC;
+    double speed_mbps = (file_size / (1024.0 * 1024.0)) / elapsed_time;
     
-    printf("Processed %zu bytes in %.3f seconds (%.2f MB/s) using %d threads\n", 
-           file_size, elapsed_seconds, speed_mbps, num_threads);
+    printf("Processed %zu bytes in %.2f seconds (%.2f MB/s) using %d threads\n", 
+           file_size, elapsed_time, speed_mbps, num_threads);
     
     // Clean up
-    free(threads);
+    for (int i = 0; i < num_threads; i++) {
+        free(buffers[i]);
+    }
+    free(buffers);
     free(thread_data);
-    munmap(output_data, file_size);
-    close(output_fd);
-    munmap(file_data, file_size);
-    close(input_fd);
+    free(threads);
+    fclose(input_file);
+    fclose(output_file);
     
     return 0;
 }
