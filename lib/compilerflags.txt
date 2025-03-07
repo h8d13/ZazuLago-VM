@@ -1,1 +1,2 @@
 gcc -O3 -march=native -mtune=native -ffast-math -pthread -flto -o encrypt_mt encrypt_mt.c
+gcc -Ofast -march=native -mtune=native -ffast-math -funroll-loops -flto -fuse-linker-plugin -pthread -mavx2 -o encrypt_ultra encrypt_ultra.c
