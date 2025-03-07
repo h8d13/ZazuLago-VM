@@ -13,7 +13,7 @@
 // Larger buffer size for higher throughput
 #define BUFFER_SIZE (64 * 1024 * 1024) // 64MB per thread
 #define MAX_THREADS 32
-#define SECTOR_SIZE 512 // For O_DIRECT alignment
+#define SECTOR_SIZE 512 // For O_DIRECT alignment and header preservation
 
 typedef struct {
     uint8_t *buffer;
@@ -120,8 +120,8 @@ void* aligned_alloc_wrapper(size_t alignment, size_t size) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 4 || argc > 5) {
-        fprintf(stderr, "Usage: %s <input_file> <output_file> <magic_number> [num_threads]\n", argv[0]);
+    if (argc < 4 || argc > 6) {
+        fprintf(stderr, "Usage: %s <input_file> <output_file> <magic_number> [num_threads] [preserve_header_size]\n", argv[0]);
         return 1;
     }
     
@@ -131,13 +131,22 @@ int main(int argc, char *argv[]) {
     
     // Determine number of threads (default to available cores)
     int num_threads = get_num_cores();
-    if (argc == 5) {
+    if (argc >= 5) {
         int requested_threads = atoi(argv[4]);
         if (requested_threads > 0) {
             num_threads = requested_threads;
         }
     }
     if (num_threads > MAX_THREADS) num_threads = MAX_THREADS;
+    
+    // Check if we should preserve header bytes (default to sector size)
+    size_t preserve_header_size = SECTOR_SIZE;
+    if (argc >= 6) {
+        size_t requested_header_size = strtoull(argv[5], NULL, 0);
+        if (requested_header_size >= 0) {
+            preserve_header_size = requested_header_size;
+        }
+    }
     
     printf("Using %d threads on this system\n", num_threads);
     
@@ -195,12 +204,55 @@ int main(int argc, char *argv[]) {
         }
     }
     
+    // Calculate optimal alignment for direct I/O
+    size_t alignment = SECTOR_SIZE;
+    
     // Start timing
     struct timespec start_time, end_time;
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     
-    // Calculate optimal alignment for direct I/O
-    size_t alignment = SECTOR_SIZE;
+    // Handle header preservation
+    size_t total_processed = 0;
+    if (preserve_header_size > 0 && file_size > preserve_header_size) {
+        // Allocate buffer for header
+        uint8_t *header_buffer = aligned_alloc_wrapper(alignment, 
+            ((preserve_header_size + alignment - 1) / alignment) * alignment);
+        
+        if (!header_buffer) {
+            perror("Failed to allocate memory for header preservation");
+            close(output_fd);
+            close(input_fd);
+            return 1;
+        }
+        
+        // Read header
+        lseek(input_fd, 0, SEEK_SET);
+        ssize_t header_read = read(input_fd, header_buffer, preserve_header_size);
+        if (header_read < 0) {
+            perror("Failed to read file header");
+            free(header_buffer);
+            close(output_fd);
+            close(input_fd);
+            return 1;
+        }
+        
+        // Write header to output without processing
+        lseek(output_fd, 0, SEEK_SET);
+        ssize_t header_written = write(output_fd, header_buffer, preserve_header_size);
+        if (header_written < 0) {
+            perror("Failed to write file header");
+            free(header_buffer);
+            close(output_fd);
+            close(input_fd);
+            return 1;
+        }
+        
+        free(header_buffer);
+        
+        // Set starting point for processing
+        total_processed = preserve_header_size;
+        printf("Preserving first %zu bytes as header\n", preserve_header_size);
+    }
     
     // Allocate memory for thread data
     ThreadData *thread_data = malloc(num_threads * sizeof(ThreadData));
@@ -214,9 +266,6 @@ int main(int argc, char *argv[]) {
         close(input_fd);
         return 1;
     }
-    
-    // Process file in chunks
-    size_t total_processed = 0;
     
     // Pre-allocate buffers for all threads
     uint8_t **input_buffers = malloc(num_threads * sizeof(uint8_t*));
@@ -257,6 +306,10 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
+    
+    // Process file in chunks, starting after the preserved header
+    lseek(input_fd, total_processed, SEEK_SET);
+    lseek(output_fd, total_processed, SEEK_SET);
     
     while (total_processed < file_size) {
         int active_threads = 0;
@@ -357,6 +410,11 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
         }
+    }
+    
+    // Ensure the file size is exactly right (especially important for structured formats)
+    if (ftruncate(output_fd, file_size) != 0) {
+        perror("Warning: Failed to set exact file size");
     }
     
     // Calculate and display performance metrics
