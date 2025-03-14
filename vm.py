@@ -11,6 +11,12 @@ import datetime
 import hashlib
 import signal
 
+from config import *
+
+config_path = "./config.py"
+
+sys.dont_write_bytecode = True
+
 is_admin = os.getuid() == 0
 print(f'Elevated: {is_admin}')
 ## Nice
@@ -32,7 +38,6 @@ else:
     print(f"Made {file_path} executable.")
 
 # Uses the magic number and can be used standalone for ANY file using any value between 0 and 4294967295
-
 ## PRECONFIG CHECK OR HELPERS
 def ensure_dir_exists(directory):
     """Ensure that the directory exists, if not, create it."""
@@ -44,57 +49,8 @@ def ensure_dir_exists(directory):
 
 def check_file_exists(file_path):
     """Check if a specific file exists."""
+    print(f"File '{file_path}' checked.")
     return os.path.exists(file_path)
-
-## Illustrative replace with your own values.
-## Treid to make it as intuitive as possible.
-# d for ISOs
-# c for Disks
-# e for external
-
-######## CONFIG HERE ##########
-iso_dir_path = "./d/"
-###############################
-iso_name = "./d/alpine.iso"
-###############################
-disks_dir_path = "./c/"
-###############################
-#image_name = "./c/myvm5.qcow2"     # > cachyos
-image_name = "./c/myvm4.qcow2"     # > alpine
-#image_name = "./c/myvm3.qcow2"     # > popos
-#image_name = "./c/myvm2.qcow2"     # > antix
-#image_name = "./c/myvm1.qcow2"     # > deb
-#image_name = "./c/myvm0.qcow2"     # > tiny11
-
-## Custom to non-encrypted VM quickly using c command
-#c_image_name="./c/myvm.qcow2"
-
-## Use more descriptive names for disks especially to recognize later or use right column. ## On linux file extensions don't mean shit, user could just mention ex: 'disk1' should still work. Careful most of this script is case sensitive as it's all shell scripting.
-
-######## SPECS CONFIG #########
-arch="x86_64"
-ram = 8096
-cores = 8
-
-# For rdisk command / avergae sized btw
-size = "60G"
-# For vnck command
-port = ":0"
-# Sometimes depeding on your iso (can make smaller/larger, just pre-allocation, doesnt take the space directly)
-###############################
-
-######### EXTERIOR (Optional) ###########
-# For second disk, enable and check paths I mounted one up (relative)
-mount_point="../VMs/e"
-enable_mp=False
-
-# If mp false specify an normal image above.
-#image_name = f'{mount_point}/myvm4.qcow2'
-
-# For conk/conkd command > Allows you to install on external media (TODO: user has to format b4 manually...)
-target_name = "sda2"
-target=f'/dev/{target_name}'
-########
 
 if enable_mp is True:
     ensure_dir_exists(mount_point)
@@ -127,12 +83,6 @@ def create_disk(chosen_name, csize):
 def boot_vm(image_name, iso_name):
     # Boot the VM from the ISO
     command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {image_name} -cdrom {iso_name} -boot d"
-    subprocess.run(command, shell=True)
-
-def run_cvm(c_image_name):
-    print(f'Started VM {cores} cores {ram} M.')
-    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -hda {c_image_name} -boot c"
-    ##
     subprocess.run(command, shell=True)
 
 def run_vm(image_name):
@@ -215,7 +165,7 @@ def temp_disk(image_name):
         # Create a temporary name by adding the random number to the base name
         temp_name = os.path.join(dir_name, f"{short_uuid}{base_name}")
 
-        print(f"Copying disk {image_name} to {temp_name}...")
+        print(f"Copying disk {image_name} > {temp_name}...")
 
         # Ensure that the image exists before attempting to copy it
         if not os.path.exists(image_name):
@@ -223,7 +173,7 @@ def temp_disk(image_name):
             sys.exit(1)
         else:
             process = subprocess.Popen(["cp", image_name, temp_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
+            i = 0
             # Spin animation during the copy process
             while process.poll() is None:
                 sys.stdout.write(f"\r{spec_chars[i]}")
@@ -233,11 +183,11 @@ def temp_disk(image_name):
 
         hashed_uuid = hashlib.sha256(str(y).encode('utf-8')).hexdigest()[:8]
 
-        print(f"Disk copied successfully to {temp_name}.")
+        print(f"Disk copied successfully {temp_name}.")
         with open(".vmkey.local", "a") as f:
             f.write(f"\n#C{hashed_uuid}{time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-        print(f"Saved post duck COPY sign to .vmkey.local")
+        print(f"Saved post COPY sign to .vmkey.local")
         # Check if the copied image exists now
         if os.path.exists(temp_name):
             print(f"Confirmed: {temp_name} exists and ready.")
@@ -252,8 +202,6 @@ def temp_disk(image_name):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         sys.exit(1)
-    finally:
-        print("Continuing with the script.")
 
 def list_disks(disks_dir_path):
     # List files and their sizes
@@ -313,6 +261,7 @@ def boot_cupkvm(target):
 def generate_mac():
     # Generate a random MAC address in the format '52:54:00:xx:xx:xx'
     mac = "52:54:00:" + ":".join(f"{random.randint(0, 255):02x}" for _ in range(3))
+    print(f'Generated {mac}')
     return mac
 
 def run_cmacvm(image_name, mac=generate_mac()):
@@ -431,7 +380,7 @@ def encrypt_exit(image_name, x):
 
     # Delete the unencrypted version after encryption
     os.remove(image_name)
-    print(f"Removed unencrypted VM image: {image_name}")
+    print(f"Removed unencrypted: {image_name}")
 
     # Run post encrypt script
     postencrypt()
@@ -443,22 +392,22 @@ def postencrypt():
     # Save this info to .hash.local for next integrity verification
     with open(".hash.local", "w") as f:
         f.write(file_info.stdout)
-    print(f"Saved post enc info to .hash.local")
+    print(f"Saved post enc info .hash.local")
 
     # Close signature
     with open(".vmkey.local", "a") as f:
         f.write(f"\n#O{time.strftime('%Y-%m-%d %H:%M:%S')}\n#{y}\n#{username}")
-    print(f"Saved post enc OUT sign to .vmkey.local")
+    print(f"Saved post enc OUT sign .vmkey.local")
 
 ############ FLOW CTRL
 
 def main():
 
     if is_admin:
+        check_file_exists(config_path)
         ensure_dir_exists(disks_dir_path)
         ensure_dir_exists(iso_dir_path)
-        check_file_exists(iso_name)
-
+        
         if check_file_exists(image_name):
             print (f'DEBUG: {image_name} C')
         else:
@@ -473,7 +422,7 @@ def main():
         else:
             # VM is not .bin (canceled midway) or deleted files
             if os.path.exists(".vmkey.local"):
-                print (f"No encrypted image detected. But found key.")
+                print (f"No enc img detected. But found key.")
 
                 ## Just load the key and proceed
                 x = load_key()
@@ -486,48 +435,41 @@ def main():
 
         ### Menu display at rest only
 
-        print(f"WARNING Options are shown bcs you <at rest> but\n can be dangerous! Press any key to boot normal\n Make updates configs after changes or risk bricking.")
-        print("##########################################")
-        print("##PRESCRIPTION v1.3.1: H8D13's QEMU MENU##")
-        print("##########################################")
-        print(" c       : Run custom no encrypt")
+        print(f"WARNING Options are shown at rest but\n can be dangerous. Press any to skip\n Update configs after changes or risk brick.")
+        print("#######################################")
+        print("#PRESCRIPTION 1.3.1: H8D13's QEMU MENU#")
+        print("#######################################")
         print(" r       : Refresh key and logs")
         print(" ilist   : Prints ISOs in dir")
         print(" dlist   : Prints disks in dir")
         print(" cdisk   : Creates <name> <x_size>")
-        print(f" rdisk   : Resets current {image_name}")
+        print(f" rdisk   : Resets {image_name}")
         print(" dupk    : Perm disk from current")
         print(" duck    : Temp disk from current")
-        print(" mayk    : Maybe disk from current")
-        print ("==========================================")
+        print(" mayk    : Mayb disk from current")
+        print ("=======================================")
         print(" brick   : Boot ISO + Restart to Disk")
-        print(" bootk   : Boot ISO headless w slogs")
-        print(f" conkd   : Boot ISO w {target}")
-        print(f" conk    : Run w {target}")
         print(f" cupkd   : Boot ISO w {target} + Image")
         print(f" cupk    : Run w {target} + Image")
         print(" taild   : Run headless w slogs")
+        print(" bootk   : Boot ISO headless w slogs")
         print(" vnck    : Run headless w slogs, VNC :0")
         print(" macg    : Gen mac and start VM")
+        print(f" conkd   : Boot ISO w {target}")
+        print(f" conk    : Run w {target}")
         print(" potk    : Delete key and encrypt?!!")
         print(" exit    : Without encrypting back")
-        print ("##########################################")
-        print (f"NOTE: For headless sesh make sure to shutdown\n use: 'poweroff', 'shutdown -h now' dep on ISO.")
+        print ("#######################################")
+        print (f"NOTE: For headless ensure to shutdow.\n 'poweroff', 'shutdown -h now', '...'")
 
-        choice = input(f"Any to continue normal boot+ENC or choice:\n")
+        choice = input(f"Any to continue+ENC or choice:\n")
 
 ## Features
-
-        if choice.lower() == 'c':
-            # Convenience to switch quickly, no encryption or anything here. Noob option.
-            run_cvm(c_image_name)
-            sys.exit()
-
         if choice.lower() == 'r':
             x = refresh_key()
             sys.exit()
             ## This is chill, we unencrypted and we can refresh key/logs safely, unless user fucked his configs, then it's corrupted lol. Try again loser.
-
+            
         if choice.lower() == 'ilist':
             list_isos()
             sys.exit()
@@ -622,7 +564,7 @@ def main():
             print("Running dupk command...")
             # Call temp_disk to copy the disk and get a name
             temp_name = temp_disk(image_name)
-            print (f'Generating perm disk. Make sure to adapt Config after use.')
+            print (f'Adapt config after use.')
             print("VM Dupk Running...")
             run_vm(temp_name)
             print("VM Dupk Stopped.")
@@ -655,6 +597,19 @@ def main():
             encrypt_exit(image_name, x)
             sys.exit()
 
+        if choice.lower() =='cupk':
+            print("VM Cupk Running...")
+            run_cupkvm(target)
+            encrypt_exit(image_name, x)
+            sys.exit()
+
+        if choice.lower() =='cupkd':
+            print("VM Cupkd Running...")
+            boot_cupkvm(target)
+            encrypt_exit(image_name, x)
+            sys.exit()
+            
+## This one doesnt interact with image directly, no enc
         if choice.lower() =='conkd':
             print("VM Conkd Running...")
             boot_conkvm(iso_name, target)
@@ -664,17 +619,7 @@ def main():
             print("VM Conk Running...")
             run_conkvm(target)
             sys.exit()
-
-        if choice.lower() =='cupk':
-            print("VM Cupk Running...")
-            run_cupkvm(target)
-            sys.exit()
-
-        if choice.lower() =='cupkd':
-            print("VM Cupkd Running...")
-            boot_cupkvm(target)
-            sys.exit()
-
+            
         if choice.lower() =='exit':
             print("Exiting without encrypting.")
             sys.exit()
