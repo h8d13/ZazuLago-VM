@@ -155,13 +155,6 @@ target=f'/dev/{target_name}'
 Elevated: True
 HEDGEN2C OK.
 Double disk: False
-Generated 52:54:00:5c:61:33
-File &apos;./config.py&apos; checked.
-Directory &apos;./c/&apos; checked.
-Directory &apos;./d/&apos; checked.
-File &apos;./c/myvm0.qcow2&apos; checked.
-DEBUG: ./c/myvm0.qcow2 C
-No enc img detected. But found key.
 WARNING Options are shown at rest but
  can be dangerous. Press any to skip
  Update configs after changes or risk brick.
