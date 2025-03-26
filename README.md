@@ -8,9 +8,8 @@ Run elevated as the nature of the script.
 
 ## Get it running:
 
-Create a `d` folder for your ISOs(`antiX-23.2_x64-full.iso `).
-
-And a `c` folder for your disk (`myvm.qcow2,...`). 
+Create a `d` folder for your ISOs 
+And a `c` folder for your disk (`myvm0.qcow2,...`). 
 
 Point to the right names in the config section of `vm.py` script. 
 
