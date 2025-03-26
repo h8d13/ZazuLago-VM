@@ -6,6 +6,10 @@ KVM, Qemu, Iso Image
 
 Run elevated as the nature of the script.
 
+![image](https://github.com/user-attachments/assets/d5125134-8176-4e29-bf15-2aafb7c9092e)
+
+This is why. 
+
 ## Get it running:
 
 Create a `d` folder for your ISOs 
