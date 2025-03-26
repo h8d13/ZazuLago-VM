@@ -222,7 +222,7 @@ def list_isos():
 
 def boot_conkvm(iso_name, target):
     # Boot the VM from the ISO
-    command = f"qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -cdrom {iso_name} -boot d   -usb -device usb-storage,drive=mydrive -drive file={target},format=raw,if=none,id=mydrive "
+    command = f"sudo qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -cdrom {iso_name} -boot d   -usb -device usb-storage,drive=mydrive -drive file={target},format=raw,if=none,id=mydrive "
     try:
         subprocess.run(command, shell=True)
     except Exception as e:

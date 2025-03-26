@@ -7,7 +7,6 @@
 arch="x86_64"
 ram = 8096
 cores = 8
-
 # For rdisk command / avergae sized btw
 size = "60G"
 # For vnck command
@@ -16,15 +15,18 @@ port = ":0"
 ###############################
 iso_dir_path = "./d/"
 ###############################
-iso_name = "./d/void.iso"
+iso_name = "./d/freebsd.iso"
 ###############################
 disks_dir_path = "./c/"
 ###############################
-#image_name = "./c/myvm5.qcow2"              # > alpine
-image_name = "./c/myvm3.qcow2"             # > popos
-#image_name = "./c/myvm3.qcow2"             # > antix
-#image_name = "./c/myvm2.qcow2"             # > deb
-#image_name = "./c/myvm1.qcow2"             # > tiny11
+# You can run 'rdisk' to format / create, destructive but useful. 
+#image_name = "./c/myvm5.qcow2"                 # > alpine
+#image_name = "./c/myvm4.qcow2"                 # > arch    
+image_name = "./c/myvm3.qcow2"             # > alma
+#image_name = "./c/myvm2.qcow2"                 # > deb
+#image_name = "./c/myvm1.qcow2"                 # > tiny11
+#image_name = "./c/myvm0.qcow2"                 # > freebsd
+
 ######### EXTERIOR (Optional) #
 # For second disk, enable and check paths I mounted one up (relative)
 enable_mp=False
@@ -36,5 +38,3 @@ mount_point="/media/usr/nvme/"
 target_name = "sda1"
 target=f'/dev/{target_name}'
 ########
-
-### Micro help: CTRL S to save, CTRL Q to quit
