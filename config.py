@@ -20,12 +20,15 @@ iso_name = "./d/freebsd.iso"
 disks_dir_path = "./c/"
 ###############################
 # You can run 'rdisk' to format / create, destructive but useful. 
+# You can then run 'brick' to boot of ISO and then restart to C auto. 
+
 #image_name = "./c/myvm5.qcow2"                 # > alpine
 #image_name = "./c/myvm4.qcow2"                 # > arch    
 image_name = "./c/myvm3.qcow2"             # > alma
 #image_name = "./c/myvm2.qcow2"                 # > deb
 #image_name = "./c/myvm1.qcow2"                 # > tiny11
 #image_name = "./c/myvm0.qcow2"                 # > freebsd
+
 
 ######### EXTERIOR (Optional) #
 # For second disk, enable and check paths I mounted one up (relative)
