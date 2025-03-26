@@ -149,7 +149,7 @@ target=f'/dev/{target_name}'
 ########
 ```
 
-## Full feature example
+## Full feature example after rdisk
 ``` 
 ./run.sh
 Elevated: True
@@ -183,7 +183,7 @@ WARNING Options are shown at rest but
  exit    : Without encrypting back
 #######################################
 NOTE: For headless ensure to shutdow.
- &apos;poweroff&apos;, &apos;shutdown -h now&apos;, &apos;...&apos;
+ 'poweroff', 'shutdown -h now', ...
 Any to continue+ENC or choice:
 brick
 Boot: ./d/alma.iso. Will trigger restart, auto to C on close.
