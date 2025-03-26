@@ -149,50 +149,50 @@ target=f'/dev/{target_name}'
 ########
 ```
 
-## Full output examples with optional features
+## Full feature example
 ``` 
-  └──╼ $sudo python3 vm.py
-  Elevated: True
-  HEDGEN2C 1.3.1
-  Directory '../VMs/e' checked.
-  Directory './c/' checked.
-  Directory './d/' checked.
-  DEBUG: ../VMs/e/myvm4.qcow2 C and ./d/alpine.iso D
-  Enrypted ../VMs/e/myvm4.qcow2.bin detected.
-  Individual normal sesh on key:
-  45
-  VM intcheck: Time matches: (0.00s difference).
-  Decrypting file: ../VMs/e/myvm4.qcow2.bin to ../VMs/e/myvm4.qcow2
-  Total size: 4390.69 MB
-  Progress: [====================] 100.0% (711.31 MB/s)
-  Finished! Processed 4390.69 MB in 6.17 seconds (711.31 MB/s)
-  Prescription v1.3.1
-  WARNING Options are shown bcs you <at rest> but
-   can be dangerous! Press any key to boot normally.
-  ##########################################
-   r       : Refresh key and logs
-   ilist   : Prints ISOs in dir
-   dlist   : Prints disks in dir
-   temk    : Print only temp disks
-   cdisk   : Creates <name> <x_size>
-   rdisk   : Resets current disk
-   brick   : Boot off the ISO + Restart
-   bootk   : Boot ISO headless w slogs
-   taild   : Run headless w slogs
-   vnck    : Run headless w slogs, VNC :0
-   duck    : Temp disk from current
-   mayk    : Maybe disk from current
-   dupk    : Perm disk from current
-   conk    : Boot ISO with attach /dev/sdb
-   conkd   : Run with attach /dev/sdb
-   potk    : Delete key and encrypt?!
-   exit    : Without encrypting back
-  ##########################################
-  NOTE: For headless sesh make sure to shutdown
-   properly using: 'poweroff' or similar dep on ISO.
-  Any to continue normal DEC/ENC or choice:
-   
-  Continuing with boot then encryption...
-  VM Running...
-  Started VM, 8 cores and 8096 M.
-```  
+./run.sh
+Elevated: True
+HEDGEN2C OK.
+Double disk: False
+Generated 52:54:00:5c:61:33
+File &apos;./config.py&apos; checked.
+Directory &apos;./c/&apos; checked.
+Directory &apos;./d/&apos; checked.
+File &apos;./c/myvm0.qcow2&apos; checked.
+DEBUG: ./c/myvm0.qcow2 C
+No enc img detected. But found key.
+WARNING Options are shown at rest but
+ can be dangerous. Press any to skip
+ Update configs after changes or risk brick.
+#######################################
+#PRESCRIPTION 1.3.1: H8D13'S QEMU MENU#
+#######################################
+ r       : Refresh key and logs
+ ilist   : Prints ISOs in dir
+ dlist   : Prints disks in dir
+ cdisk   : Creates &lt;name&gt; &lt;x_size&gt;
+ rdisk   : Resets ./c/myvm0.qcow2
+ dupk    : Perm disk from current
+ duck    : Temp disk from current
+ mayk    : Mayb disk from current
+=======================================
+ brick   : Boot ISO + Restart to Disk
+ cupkd   : Boot ISO w /dev/sda1 + Image
+ cupk    : Run w /dev/sda1 + Image
+ taild   : Run headless w slogs
+ bootk   : Boot ISO headless w slogs
+ vnck    : Run headless w slogs, VNC :0
+ macg    : Gen mac and start VM
+ conkd   : Boot ISO w /dev/sda1
+ conk    : Run w /dev/sda1
+ potk    : Delete key and encrypt?!!
+ exit    : Without encrypting back
+#######################################
+NOTE: For headless ensure to shutdow.
+ &apos;poweroff&apos;, &apos;shutdown -h now&apos;, &apos;...&apos;
+Any to continue+ENC or choice:
+brick
+Boot: ./d/alma.iso. Will trigger restart, auto to C on close.
+
+
