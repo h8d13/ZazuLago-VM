@@ -1,5 +1,5 @@
 # Main needed
-apt install vncviewer qemu-system qemu-utils qemu-kvm libvirt-daemon-system libvirt-clients
+apt install qemu-system qemu-utils qemu-kvm libvirt-daemon-system libvirt-clients
 
 # d for isos, c for disks
 mkdir d
