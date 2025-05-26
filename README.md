@@ -164,7 +164,6 @@ WARNING Options are shown at rest but
  r       : Refresh key and logs
  ilist   : Prints ISOs in dir
  dlist   : Prints disks in dir
- cdisk   : Creates &lt;name&gt; &lt;x_size&gt;
  rdisk   : Resets ./c/myvm0.qcow2
  dupk    : Perm disk from current
  duck    : Temp disk from current
