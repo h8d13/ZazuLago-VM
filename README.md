@@ -105,6 +105,8 @@ Started off as a project where I wanted to see how it's possible to secure VMs t
 I will be posting more settings to do soon. 
 Like tailing network, etc 
 
+## Configurable 
+
 Uses simple shell scripting to be configurable (thanks to Qemu commands):
 ``` 
 ## Illustrative replace with your own values.
