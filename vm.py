@@ -203,23 +203,6 @@ def temp_disk(image_name):
         print(f"An unexpected error occurred: {e}")
         sys.exit(1)
 
-def list_disks(disks_dir_path):
-    # List files and their sizes
-    return [(file, os.stat(os.path.join(disks_dir_path, file)).st_size)
-            for file in os.listdir(disks_dir_path)
-            if os.path.isfile(os.path.join(disks_dir_path, file))]
-
-def list_isos():
-    files = os.listdir(iso_dir_path)
-
-    # Loop through all files (`ls -l`)
-    for file in files:
-        file_path = os.path.join(iso_dir_path, file)
-        if os.path.isfile(file_path):
-            file_info = os.stat(file_path)
-            size = file_info.st_size
-            print(f"{file} - Size: {size} bytes")
-
 def boot_conkvm(iso_name, target):
     # Boot the VM from the ISO
     command = f"sudo qemu-system-{arch} -enable-kvm -m {ram} -cpu host -smp {cores} -cdrom {iso_name} -boot d   -usb -device usb-storage,drive=mydrive -drive file={target},format=raw,if=none,id=mydrive "
@@ -440,8 +423,6 @@ def main():
         print("#PRESCRIPTION 1.3.1: H8D13's QEMU MENU#")
         print("#######################################")
         print(" r       : Refresh key and logs")
-        print(" ilist   : Prints ISOs in dir")
-        print(" dlist   : Prints disks in dir")
         print(" cdisk   : Creates <name> <x_size>")
         print(f" rdisk   : Resets {image_name}")
         print(" dupk    : Perm disk from current")
@@ -470,14 +451,6 @@ def main():
             sys.exit()
             ## This is chill, we unencrypted and we can refresh key/logs safely, unless user fucked his configs, then it's corrupted lol. Try again loser.
             
-        if choice.lower() == 'ilist':
-            list_isos()
-            sys.exit()
-
-        if choice.lower() == 'dlist':
-            list_disks()
-            sys.exit()
-
         if choice.lower() == 'cdisk':
             # Ask the user for input in the format <name> <number>
             user_input = input("Name and size (ex:'myvm2 60'): ")
