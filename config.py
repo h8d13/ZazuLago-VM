@@ -9,13 +9,11 @@ ram = 8096
 cores = 8
 # For rdisk command / avergae sized btw
 size = "60G"
-# For vnck command
-port = ":0"
 # Sometimes depeding on your iso (can make smaller/larger, just pre-allocation, doesnt take the space directly)
 ###############################
 iso_dir_path = "./d/"
 ###############################
-iso_name = "./d/freebsd.iso"
+iso_name = "./d/arch.iso"
 ###############################
 disks_dir_path = "./c/"
 ###############################
@@ -23,8 +21,8 @@ disks_dir_path = "./c/"
 # You can then run 'brick' to boot of ISO and then restart to C auto. 
 
 #image_name = "./c/myvm5.qcow2"                 # > alpine
-#image_name = "./c/myvm4.qcow2"                 # > arch    
-image_name = "./c/myvm3.qcow2"             # > alma
+image_name = "./c/myvm4.qcow2"                 # > arch    
+#image_name = "./c/myvm3.qcow2"                 # > alma
 #image_name = "./c/myvm2.qcow2"                 # > deb
 #image_name = "./c/myvm1.qcow2"                 # > tiny11
 #image_name = "./c/myvm0.qcow2"                 # > freebsd
