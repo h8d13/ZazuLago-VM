@@ -1,1 +1,1 @@
-sudo python3 -B vm.py
+python3 -B vm_clean.py
